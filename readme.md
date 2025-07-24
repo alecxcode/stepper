@@ -86,17 +86,4 @@ finally:
 
 If you find this useful, consider supporting the developer.
 
-<a href="https://www.gofundme.com/f/keep-my-science-journey-alive-with-support" target="_blank" style="
-  display: inline-block;
-  background-color: #ff7e00;
-  color: white;
-  padding: 18px 36px;
-  font-size: 28px;
-  font-weight: bold;
-  border-radius: 12px;
-  text-decoration: none;
-  text-align: center;
-  box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5), inset 2px 2px 4px rgba(255,255,255,0.8);
-">
-  Donate
-</a>
+[![Donate](https://exoimages.pages.dev/buttons/donate-ora.png)](https://www.gofundme.com/f/keep-my-science-journey-alive-with-support)
