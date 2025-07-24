@@ -86,4 +86,4 @@ finally:
 
 If you find this useful, consider supporting the developer.
 
-[![Donate](https://exoimages.pages.dev/buttons/donate-ora.png)](https://www.gofundme.com/f/keep-my-science-journey-alive-with-support)
+[![Donate](https://exoimages.pages.dev/buttons/donate-ora.svg)](https://www.gofundme.com/f/keep-my-science-journey-alive-with-support)
