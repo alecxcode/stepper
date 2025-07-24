@@ -18,11 +18,15 @@ It essentially implements the same `Stepper` class logic as described in the [Ar
 - Python 3.9+  
 - `gpiozero` library
 
+## Video Tutorial with Electronics
+
+[![Video Tutorial](https://img.youtube.com/vi/T8thjPohz5g/mqdefault.jpg)](https://www.youtube.com/watch?v=T8thjPohz5g)
+
 ## Installation
 
 Place the `stepper.py` file containing the `Stepper` class in your project directory.
 
-Install dependencies if not already available:
+Install dependencies if not already available. For example:
 ```bash
 pip install gpiozero
 ```
@@ -80,5 +84,19 @@ finally:
 
 ## Help the Creator
 
-If you find this useful, consider supporting the developer.  
-**[Donate](https://www.gofundme.com/manage/keep-my-science-journey-alive-with-support)**
+If you find this useful, consider supporting the developer.
+
+<a href="https://www.gofundme.com/f/keep-my-science-journey-alive-with-support" target="_blank" style="
+  display: inline-block;
+  background-color: #ff7e00;
+  color: white;
+  padding: 18px 36px;
+  font-size: 28px;
+  font-weight: bold;
+  border-radius: 12px;
+  text-decoration: none;
+  text-align: center;
+  box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5), inset 2px 2px 4px rgba(255,255,255,0.8);
+">
+  Donate
+</a>
