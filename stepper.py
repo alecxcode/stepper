@@ -49,17 +49,17 @@ class Stepper:
     def step_motor(self, cur_step):
         if self.pin_count == 2:
             if cur_step == 0:  # 01
-                self.motor_pins[0].off()
-                self.motor_pins[1].on()
+                self.motor_pin_1.off()
+                self.motor_pin_2.on()
             elif cur_step == 1:  # 11
-                self.motor_pins[0].on()
-                self.motor_pins[1].on()
+                self.motor_pin_1.on()
+                self.motor_pin_2.on()
             elif cur_step == 2:  # 10
-                self.motor_pins[0].on()
-                self.motor_pins[1].off()
+                self.motor_pin_1.on()
+                self.motor_pin_2.off()
             elif cur_step == 3:  # 00
-                self.motor_pins[0].off()
-                self.motor_pins[1].off()
+                self.motor_pin_1.off()
+                self.motor_pin_2.off()
         elif self.pin_count == 4:
             if cur_step == 0:  # 1010
                 self.motor_pin_1.on()
