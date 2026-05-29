@@ -88,16 +88,15 @@ class Stepper:
         """Call this inside the main loop each iteration frequently enough."""
         if self.steps_left <= 0:
             return 0.0
-        if self.last_step_time == 0:
-            self.last_step_time = monotonic()  
         current_time = monotonic()
         target_time = self.last_step_time + self.step_delay
         if current_time >= target_time:
-            self.last_step_time += self.step_delay
+            self.last_step_time = current_time
             self.step_number += self.direction
             self.step_number %= self.number_of_steps
             self.step_motor(self.step_number % (10 if self.pin_count == 5 else 4))
             self.steps_left -= 1
+            return 0.0
         return target_time - current_time
 
     def step_motor(self, cur_step):

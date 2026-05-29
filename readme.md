@@ -40,6 +40,7 @@ sudo apt install python3-gpiozero
 
 ## Usage
 
+### Standard methods
 Initialize the object (example for 4-pin motor with 2048 steps):  
 `step_motor = Stepper(2048, 5, 6, 13, 19)`
 
@@ -63,7 +64,7 @@ Call this in each iteration of the main loop:
 `step_motor.tick()`
 
 ### Async methods in async_stepper module:
-Same as above, but without start() and tick() as they are not needed in async mode.
+Same as above, but class name is `AsyncStepper`, and without start() and tick() as they are not needed in async mode.
 
 ## Examples
 

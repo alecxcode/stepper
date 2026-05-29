@@ -57,13 +57,12 @@ class AsyncStepper:
 
         self.direction = 1 if steps_to_move > 0 else -1
         self.steps_left = abs(steps_to_move)
-        self.last_step_time = monotonic()
         try:
             while self.steps_left > 0:
                 current_time = monotonic()
                 target_time = self.last_step_time + self.step_delay
                 if current_time >= target_time:
-                    self.last_step_time += self.step_delay
+                    self.last_step_time = current_time
                     self.step_number += self.direction
                     self.step_number %= self.number_of_steps
                     self.step_motor(self.step_number % (10 if self.pin_count == 5 else 4))
