@@ -16,11 +16,11 @@ class Stepper:
 
     def __init__(self, number_of_steps, *motor_pins):
         self.step_number = 0
+        self.steps_left = 0
         self.direction = 0
         self.last_step_time = 0
         self.number_of_steps = number_of_steps
         self.step_delay = 0
-        self.stop_mode = False
         self.pin_count = len(motor_pins)
         if self.pin_count not in (2, 4, 5):
             raise ValueError("Unsupported number of pins. Use 2, 4, or 5 pins.")
@@ -29,11 +29,9 @@ class Stepper:
         
         self.motor_pin_1 = self.pins[0]
         self.motor_pin_2 = self.pins[1]
-        
         if self.pin_count >= 4:
             self.motor_pin_3 = self.pins[2]
-            self.motor_pin_4 = self.pins[3]
-            
+            self.motor_pin_4 = self.pins[3]      
         if self.pin_count == 5:
             self.motor_pin_5 = self.pins[4]
 
@@ -64,25 +62,41 @@ class Stepper:
                            in the opposite direction.
         """
 
-        self.stop_mode = False
+        self.start(steps_to_move)
+        while self.steps_left > 0:
+            self.tick()
+            sleep(0.001)
+
+    def start(self, steps_to_move):
+        """
+        Begin the motor turn the specified number of steps. The speed of
+        the steps is determined by the most recent call of `speed()`.
+
+        Note: this function only initiates the movement; the motor will 
+        only actually move when tick() method is called
+
+        Args:
+            steps_to_move: The number of steps to turn. A negative value turns
+                           in the opposite direction.
+        """        
+
         self.direction = 1 if steps_to_move > 0 else -1
-        steps_left = abs(steps_to_move)
-        while steps_left > 0:
-            if self.stop_mode:
-                break
-            current_time = time()
-            elapsed_time = current_time - self.last_step_time
-            if elapsed_time >= self.step_delay:
-                self.last_step_time = current_time
-                self.step_number += self.direction
-                self.step_number %= self.number_of_steps
-                if self.pin_count == 5:
-                    self.step_motor(self.step_number % 10)
-                else:
-                    self.step_motor(self.step_number % 4)
-                steps_left -= 1
-            else:
-                sleep(self.step_delay - elapsed_time)
+        self.steps_left = abs(steps_to_move)
+        self.last_step_time = 0   
+
+    def tick(self):
+        """Call this inside the main loop each iteration frequently enough."""
+        if self.steps_left <= 0:
+            return 
+        if self.last_step_time == 0:
+            self.last_step_time = time()  
+        current_time = time()
+        if current_time >= (self.last_step_time + self.step_delay):
+            self.last_step_time += self.step_delay
+            self.step_number += self.direction
+            self.step_number %= self.number_of_steps
+            self.step_motor(self.step_number % (10 if self.pin_count == 5 else 4))
+            self.steps_left -= 1
 
     def step_motor(self, cur_step):
         """
@@ -190,6 +204,6 @@ class Stepper:
         Stop the motor by setting all the GPIO pins low.
         """
 
-        self.stop_mode = True
+        self.steps_left = 0
         for pin in self.pins:
             pin.off()
