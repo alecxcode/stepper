@@ -26,7 +26,7 @@ It essentially implements the same `Stepper` class logic as described in the [Ar
 
 ## Installation
 
-Place the `stepper.py` file containing the `Stepper` class in your project directory.
+Place the `stepper.py` file containing the `Stepper` class in your project directory.  
 For asynchronous applications, place the `async_stepper.py` with `AsyncStepper` class file in your project directory.
 
 Install dependencies if not already available. For example:
@@ -101,13 +101,13 @@ from stepper import Stepper
 
 motor = Stepper(2048, 5, 6, 13, 19)
 motor.set_speed(10)
-motor.start(1024)
+motor.start(1024) # can call in the main loop on event like sensor data
 
 while True:
-    sleep_time = motor.tick()
-    sleep(max(sleep_time, 0.0001))
+    t = motor.tick()
     # run other code while the motor works
-    if motor.steps_left <=0 :
+    # or sleep(max(t, 0.0001))
+    if motor.steps_left <= 0:
         break
 ```
 
