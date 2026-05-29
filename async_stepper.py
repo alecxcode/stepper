@@ -1,16 +1,14 @@
-# Stepper Motors on Raspberry Pi
-from time import monotonic, sleep
+# Async Stepper Motors on Raspberry Pi
+import asyncio
+from time import monotonic
 from gpiozero import OutputDevice
 
-class Stepper:
+class AsyncStepper:
     """
-    Class to control a stepper motor connected to the GPIO pins.
+    Asynchronous class to control a stepper motor connected to the GPIO pins.
 
     Args:
-        number_of_steps: The number of steps per revolution for the motor. If
-                         the value is given as the number of degrees per step,
-                         then divide 360 by that number to get the number of
-                         steps (for example, 360 / 1.8 gives 200 steps).
+        number_of_steps: The number of steps per revolution for the motor.
         motor_pins: The GPIO pins to use to control the motor.
     """
 
@@ -31,14 +29,13 @@ class Stepper:
         self.motor_pin_2 = self.pins[1]
         if self.pin_count >= 4:
             self.motor_pin_3 = self.pins[2]
-            self.motor_pin_4 = self.pins[3]      
+            self.motor_pin_4 = self.pins[3]
         if self.pin_count == 5:
             self.motor_pin_5 = self.pins[4]
 
     def set_speed(self, speed):
         """
-        Sets the speed of the motor. This does not move the motor, just
-        specifies how fast it moves when you call `step()`.
+        Sets the speed of the motor in RPM.
 
         Args:
             speed: The motor speed in rotations per minute (RPM).
@@ -48,57 +45,33 @@ class Stepper:
             return
         self.step_delay = 60.0 / (self.number_of_steps * speed)
 
-    def step(self, steps_to_move):
+    async def step(self, steps_to_move):
         """
-        Make the motor turn the specified number of steps. The speed of
-        the steps is determined by the most recent call of `speed()`.
-
-        Note: this function is blocking; it does not return until all 
-        the steps have been completed, which could be a long time for
-        a large number of steps (or a low speed).
+        Make the motor turn the specified number of steps.
+        Non-blocking asynchronous step method.
 
         Args:
             steps_to_move: The number of steps to turn. A negative value turns
                            in the opposite direction.
         """
-
-        self.start(steps_to_move)
-        while self.steps_left > 0:
-            t = self.tick()
-            sleep(max(t, 0.0001))
-
-    def start(self, steps_to_move):
-        """
-        Begin the motor turn the specified number of steps. The speed of
-        the steps is determined by the most recent call of `speed()`.
-
-        Note: this function only initiates the movement; the motor will 
-        only actually move when tick() method is called
-
-        Args:
-            steps_to_move: The number of steps to turn. A negative value turns
-                           in the opposite direction.
-        """        
 
         self.direction = 1 if steps_to_move > 0 else -1
         self.steps_left = abs(steps_to_move)
-        self.last_step_time = 0
-
-    def tick(self):
-        """Call this inside the main loop each iteration frequently enough."""
-        if self.steps_left <= 0:
-            return 0.0
-        if self.last_step_time == 0:
-            self.last_step_time = monotonic()  
-        current_time = monotonic()
-        target_time = self.last_step_time + self.step_delay
-        if current_time >= target_time:
-            self.last_step_time += self.step_delay
-            self.step_number += self.direction
-            self.step_number %= self.number_of_steps
-            self.step_motor(self.step_number % (10 if self.pin_count == 5 else 4))
-            self.steps_left -= 1
-        return target_time - current_time
+        self.last_step_time = monotonic()
+        try:
+            while self.steps_left > 0:
+                current_time = monotonic()
+                target_time = self.last_step_time + self.step_delay
+                if current_time >= target_time:
+                    self.last_step_time += self.step_delay
+                    self.step_number += self.direction
+                    self.step_number %= self.number_of_steps
+                    self.step_motor(self.step_number % (10 if self.pin_count == 5 else 4))
+                    self.steps_left -= 1
+                else:
+                    await asyncio.sleep(max(target_time - current_time, 0.0001))
+        except asyncio.CancelledError:
+            self.stop()
 
     def step_motor(self, cur_step):
         """

@@ -11,6 +11,8 @@ It essentially implements the same `Stepper` class logic as described in the [Ar
 - Adjustable stepping delay (speed)  
 - Arduino-style stepping logic  
 - Easy integration with `gpiozero`
+- Non-blocking and blocking modes
+- Async mode and version
 
 ## Requirements
 
@@ -25,6 +27,7 @@ It essentially implements the same `Stepper` class logic as described in the [Ar
 ## Installation
 
 Place the `stepper.py` file containing the `Stepper` class in your project directory.
+For asynchronous applications, place the `async_stepper.py` with `AsyncStepper` class file in your project directory.
 
 Install dependencies if not already available. For example:
 ```bash
@@ -52,7 +55,17 @@ Move the motor one step backward:
 Stop the motor immediately:  
 `step_motor.stop()`
 
-## Example
+### Additional non-blocking methods:
+Set the motor to move in a main loop:  
+`step_motor.start(steps_to_move)`
+
+Call this in each iteration of the main loop:  
+`step_motor.tick()`
+
+### Async methods in async_stepper module:
+Same as above, but without start() and tick() as they are not needed in async mode.
+
+## Examples
 
 ```python
 # 4-pin Stepper Motor on Raspberry Pi
@@ -80,6 +93,35 @@ except KeyboardInterrupt:
     pass
 finally:
     step_motor.stop()
+```
+
+```python
+# Non-blocking mode example
+from stepper import Stepper
+
+motor = Stepper(2048, 5, 6, 13, 19)
+motor.set_speed(10)
+motor.start(1024)
+
+while True:
+    sleep_time = motor.tick()
+    sleep(max(sleep_time, 0.0001))
+    # run other code while the motor works
+    if motor.steps_left <=0 :
+        break
+```
+
+```python
+# Acynchronous mode example
+import asyncio
+from async_stepper import AsyncStepper
+
+async def run():
+    motor = AsyncStepper(2048, 5, 6, 13, 19)
+    motor.set_speed(8)
+    await motor.step(2048)
+
+asyncio.run(run())
 ```
 
 ## Help the Creator
