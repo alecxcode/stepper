@@ -1,8 +1,19 @@
-from gpiozero import OutputDevice
+# Stepper Motors on Raspberry Pi
 from time import time, sleep
-
+from gpiozero import OutputDevice
 
 class Stepper:
+    """
+    Class to control a stepper motor connected to the GPIO pins.
+
+    Args:
+        number_of_steps: The number of steps per revolution for the motor. If
+                         the value is given as the number of degrees per step,
+                         then divide 360 by that number to get the number of
+                         steps (for example, 360 / 1.8 gives 200 steps).
+        motor_pins: The GPIO pins to use to control the motor.
+    """
+
     def __init__(self, number_of_steps, *motor_pins):
         self.step_number = 0
         self.direction = 0
@@ -26,11 +37,33 @@ class Stepper:
             self.motor_pin_5 = self.pins[4]
 
     def set_speed(self, speed):
+        """
+        Sets the speed of the motor. This does not move the motor, just
+        specifies how fast it moves when you call `step()`.
+
+        Args:
+            speed: The motor speed in rotations per minute (RPM).
+        """
+
+        # Convert the speed to delay in seconds
         if speed <= 0:
             return
         self.step_delay = 60.0 / (self.number_of_steps * speed)
 
     def step(self, steps_to_move):
+        """
+        Make the motor turn the specified number of steps. The speed of the
+        steps is determined by the most recent call of `speed()`.
+
+        Note: this function does not return until all the steps have been
+        completed, which could be a long time for a large number of steps (or a
+        low speed).
+
+        Args:
+            steps_to_move: The number of steps to turn. A negative value turns
+                           in the opposite direction.
+        """
+
         self.direction = 1 if steps_to_move > 0 else -1
         steps_left = abs(steps_to_move)
         while steps_left > 0:
@@ -48,7 +81,11 @@ class Stepper:
             else:
                 sleep(self.step_delay - elapsed_time)
 
-    def step_motor(self, cur_step):
+    def step_motor(self, cur_step: int):
+        """
+        Internal method to implement a single step by toggling the GPIO pins.
+        """
+
         if self.pin_count == 2:
             if cur_step == 0:    # 01
                 self.motor_pin_1.off()
@@ -146,5 +183,9 @@ class Stepper:
                 self.motor_pin_5.on()
 
     def stop(self):
+        """
+        Stop the motor by setting all the GPIO pins low.
+        """
+
         for pin in self.pins:
             pin.off()
