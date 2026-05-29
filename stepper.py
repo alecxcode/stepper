@@ -20,6 +20,7 @@ class Stepper:
         self.last_step_time = 0
         self.number_of_steps = number_of_steps
         self.step_delay = 0
+        self.stop_mode = False
         self.pin_count = len(motor_pins)
         if self.pin_count not in (2, 4, 5):
             raise ValueError("Unsupported number of pins. Use 2, 4, or 5 pins.")
@@ -45,28 +46,30 @@ class Stepper:
             speed: The motor speed in rotations per minute (RPM).
         """
 
-        # Convert the speed to delay in seconds
         if speed <= 0:
             return
         self.step_delay = 60.0 / (self.number_of_steps * speed)
 
     def step(self, steps_to_move):
         """
-        Make the motor turn the specified number of steps. The speed of the
-        steps is determined by the most recent call of `speed()`.
+        Make the motor turn the specified number of steps. The speed of
+        the steps is determined by the most recent call of `speed()`.
 
-        Note: this function does not return until all the steps have been
-        completed, which could be a long time for a large number of steps (or a
-        low speed).
+        Note: this function is blocking; it does not return until all 
+        the steps have been completed, which could be a long time for
+        a large number of steps (or a low speed).
 
         Args:
             steps_to_move: The number of steps to turn. A negative value turns
                            in the opposite direction.
         """
 
+        self.stop_mode = False
         self.direction = 1 if steps_to_move > 0 else -1
         steps_left = abs(steps_to_move)
         while steps_left > 0:
+            if self.stop_mode:
+                break
             current_time = time()
             elapsed_time = current_time - self.last_step_time
             if elapsed_time >= self.step_delay:
@@ -81,7 +84,7 @@ class Stepper:
             else:
                 sleep(self.step_delay - elapsed_time)
 
-    def step_motor(self, cur_step: int):
+    def step_motor(self, cur_step):
         """
         Internal method to implement a single step by toggling the GPIO pins.
         """
@@ -187,5 +190,6 @@ class Stepper:
         Stop the motor by setting all the GPIO pins low.
         """
 
+        self.stop_mode = True
         for pin in self.pins:
             pin.off()
