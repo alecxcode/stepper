@@ -1,6 +1,5 @@
 # Stepper Motors on Raspberry Pi
-
-from time import time
+from time import time, sleep
 from gpiozero import OutputDevice
 
 class Stepper:
@@ -20,24 +19,22 @@ class Stepper:
         self.direction = 0
         self.last_step_time = 0
         self.number_of_steps = number_of_steps
-        self.step_delay = 0.004
+        self.step_delay = 0
         self.pin_count = len(motor_pins)
-        if self.pin_count < 2 or self.pin_count > 5:
-            raise ValueError("Unsupported number of pins")
+        if self.pin_count not in (2, 4, 5):
+            raise ValueError("Unsupported number of pins. Use 2, 4, or 5 pins.")
 
-        self.motor_pin_1 = OutputDevice(motor_pins[0])
-        self.motor_pin_2 = OutputDevice(motor_pins[1])
-        if self.pin_count > 3:
-            self.motor_pin_3 = OutputDevice(motor_pins[2])
-            self.motor_pin_4 = OutputDevice(motor_pins[3])
-        if self.pin_count > 4:
-            self.motor_pin_5 = OutputDevice(motor_pins[5])
-
-        self.pins = [self.motor_pin_1, self.motor_pin_2]
-        if self.pin_count > 3:
-            self.pins.extend([self.motor_pin_3, self.motor_pin_4])
-        if self.pin_count > 4:
-            self.pins.append(self.motor_pin_5)
+        self.pins = [OutputDevice(pin) for pin in motor_pins]
+        
+        self.motor_pin_1 = self.pins[0]
+        self.motor_pin_2 = self.pins[1]
+        
+        if self.pin_count >= 4:
+            self.motor_pin_3 = self.pins[2]
+            self.motor_pin_4 = self.pins[3]
+            
+        if self.pin_count == 5:
+            self.motor_pin_5 = self.pins[4]
 
     def set_speed(self, speed):
         """
@@ -49,6 +46,8 @@ class Stepper:
         """
 
         # Convert the speed to delay in seconds
+        if speed <= 0:
+            return
         self.step_delay = 60.0 / (self.number_of_steps * speed)
 
     def step(self, steps_to_move):
@@ -69,7 +68,8 @@ class Stepper:
         steps_left = abs(steps_to_move)
         while steps_left > 0:
             current_time = time()
-            if (current_time - self.last_step_time) >= self.step_delay:
+            elapsed_time = current_time - self.last_step_time
+            if elapsed_time >= self.step_delay:
                 self.last_step_time = current_time
                 self.step_number += self.direction
                 self.step_number %= self.number_of_steps
@@ -78,6 +78,8 @@ class Stepper:
                 else:
                     self.step_motor(self.step_number % 4)
                 steps_left -= 1
+            else:
+                sleep(self.step_delay - elapsed_time)
 
     def step_motor(self, cur_step: int):
         """
@@ -85,7 +87,7 @@ class Stepper:
         """
 
         if self.pin_count == 2:
-            if cur_step == 0:  # 01
+            if cur_step == 0:    # 01
                 self.motor_pin_1.off()
                 self.motor_pin_2.on()
             elif cur_step == 1:  # 11
@@ -98,7 +100,7 @@ class Stepper:
                 self.motor_pin_1.off()
                 self.motor_pin_2.off()
         elif self.pin_count == 4:
-            if cur_step == 0:  # 1010
+            if cur_step == 0:    # 1010
                 self.motor_pin_1.on()
                 self.motor_pin_2.off()
                 self.motor_pin_3.on()
@@ -119,7 +121,7 @@ class Stepper:
                 self.motor_pin_3.off()
                 self.motor_pin_4.on()
         elif self.pin_count == 5:
-            if cur_step == 0:  # 01101
+            if cur_step == 0:    # 01101
                 self.motor_pin_1.off()
                 self.motor_pin_2.on()
                 self.motor_pin_3.on()
